@@ -11,6 +11,7 @@
   "dependencies": {
     "bcryptjs": "*",
     "body-parser": "*",
+    "connect-flash": "*",
     "cookie-parser": "*",
     "ejs": "*",
     "express": "*",
@@ -21,7 +22,8 @@
     "mongoose": "*",
     "morgan": "*",
     "passport": "*",
-    "passport-local": "*",
-    "connect-flash": "*"
+    "passport-facebook": "^2.1.1",
+    "passport-google-oauth": "^1.0.0",
+    "passport-local": "*"
   }
 }
