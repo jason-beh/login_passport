@@ -9,6 +9,7 @@ var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var passport = require('passport');
 var flash = require('connect-flash');
+var MongoStore = require('connect-mongo')(session);
 
 
 var configDB = require('./config/database.js');
@@ -20,7 +21,9 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({secret: 'anystringoftext',
          saveUninitialized: true,
-         resave: true}));
+         resave: true,
+         store: new MongoStore({ mongooseConnection : mongoose.connection,
+                                 ttl : 2 * 24 * 60* 60 })}));
 
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
