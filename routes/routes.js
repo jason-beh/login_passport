@@ -42,6 +42,20 @@ module.exports = function(app, passport){
     passport.authenticate('google', { successRedirect: '/profile',
                                         failureRedirect: '/' }));
 
+  app.get('/connect/facebook', passport.authorize('facebook', { authType: 'rerequest', scope: ['email'] }));
+
+  app.get('/connect/google', passport.authorize('google',  { authType: 'rerequest', scope: ['profile', 'email'] }));
+
+  app.get('/connect/local', function(req,res) {
+    res.render('connect-local.ejs', { message: req.flash('signupMessage')})
+  })
+
+  app.post('/connect/local', passport.authenticate('local-signup', {
+    successRedirect: '/profile',
+    failureRedirect: '/connect/local',
+    failureFlash: true
+  }))
+
   app.get('/logout', function(req,res){
     req.logout();
     res.redirect('/');
