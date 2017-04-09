@@ -3,7 +3,14 @@
 <head>
   <title>Node Authentication</title>
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> <!-- load fontawesome -->
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="/build.js"></script>
+  <script type="text/javascript">
+    openLoginModal();
+  </script>
   <style>
     body    { padding-top:80px; }
   </style>
@@ -11,15 +18,78 @@
 <body>
 <div class="container">
 
+  <div class="modal fade login" id="loginModal">
+    <div class="modal-dialog login animated">
+        <div class="modal-content">
+           <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                  <h4 class="modal-title">Login with</h4>
+              </div>
+              <div class="modal-body">
+                  <div class="box">
+                       <div class="content">
+                          <div class="social">
+                              <a id="facebook_login" class="circle facebook" href="/auth/facebook">
+                                  <i class="fa fa-facebook fa-fw"></i>
+                              </a>
+                              <a id="google_login" class="circle google" href="/auth/google">
+                                  <i class="fa fa-google fa-fw"></i>
+                              </a>
+                              <a id="linkedin_login" class="circle linkedin" href="/auth/linkedin">
+                                  <i class="fa fa-linkedin fa-fw"></i>
+                              </a>
+                          </div>
+                          <div class="division">
+                              <div class="line l"></div>
+                                <span>or</span>
+                              <div class="line r"></div>
+                          </div>
+                          <% if (hasErrors) { %>
+                              <div class="alert alert-danger"><%= messages %></div>
+                          <% } %>
+                          <div class="form loginBox">
+                              <form method="post" action="/auth" accept-charset="UTF-8">
+                                <input id="email" class="form-control" type="text" placeholder="Email" name="login_email">
+                                <input id="password" class="form-control" type="password" placeholder="Password" name="login_password">
+                                <button type="submit" class="btn btn-default btn-login" name="submit" formaction="/auth/login" >Login</button>
+                              </form>
+                          </div>
+                       </div>
+                  </div>
+                  <div class="box">
+                      <div class="content registerBox" style="display:none;">
+                       <div class="form">
+                          <form method="post" html="{:multipart=>true}" data-remote="true" action="/auth/signup" accept-charset="UTF-8">
+                          <input id="email" class="form-control" type="text" placeholder="Email" name="signup_email">
+                          <input id="password" class="form-control" type="password" placeholder="Password" name="signup_password">
+                          <input id="password_confirmation" class="form-control" type="password" placeholder="Confirm Password" name="signup_confirm_password">
+                          <button type="submit" class="btn btn-default btn-register" name="submit" formaction="/auth/signup">Signup</button>
+                          </form>
+                        </div>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <div class="forgot login-footer">
+                      <span>Looking to
+                           <a href="javascript: showRegisterForm();">create an account</a>
+                      ?</span>
+                  </div>
+                  <div class="forgot register-footer" style="display:none">
+                       <span>Already have an account?</span>
+                       <a href="javascript: showLoginForm();">Login</a>
+                  </div>
+              </div>
+        </div>
+    </div>
+  </div>
+
   <div class="jumbotron text-center">
     <h1><span class="fa fa-lock"></span> Node Authentication</h1>
 
-    <p>Login or Register with:</p>
-    <a href="/login" class="btn btn-default"><span class="fa fa-user"></span> Local Login</a>
-    <a href="/signup" class="btn btn-default"><span class="fa fa-user"></span> Local Signup</a>
-    <a href="/auth/facebook" class="btn btn-primary"><span class="fa fa-facebook"></span> Facebook</a>
-    <a href="/auth/google" class="btn btn-danger"><span class="fa fa-google-plus"></span> Google</a>
+    <a class="btn big-login" data-toggle="modal" href="javascript:void(0)" onclick="openLoginModal();">Log in</a>
   </div>
+
 
 </div>
 </body>

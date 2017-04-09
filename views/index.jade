@@ -1,0 +1,69 @@
+doctype html
+html
+  head
+    title Node Authentication
+    link(rel='stylesheet', href='//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css')
+    // load bootstrap css
+    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css')
+    // load fontawesome
+    link(rel='stylesheet', type='text/css', href='/style.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js')
+    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', integrity='sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa', crossorigin='anonymous')
+    script(src='/build.js')
+    script(type='text/javascript').
+      openLoginModal();
+    style.
+      body    { padding-top:80px; }
+  body
+    .container
+      #loginModal.modal.fade.login
+        .modal-dialog.login.animated
+          .modal-content
+            .modal-header
+              button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+              h4.modal-title Login with
+            .modal-body
+              .box
+                .content
+                  .social
+                    a#facebook_login.circle.facebook(href='/auth/facebook')
+                      i.fa.fa-facebook.fa-fw
+                    a#google_login.circle.google(href='/auth/google')
+                      i.fa.fa-google.fa-fw
+                    a#linkedin_login.circle.linkedin(href='/auth/linkedin')
+                      i.fa.fa-linkedin.fa-fw
+                  .division
+                    .line.l
+                    span or
+                    .line.r
+                  if errors
+                    .alert.alert-danger #{errors[0].msg}
+                  if message.length > 0
+                    .alert.alert-danger #{message}
+                  .form.loginBox
+                    form(method='post', action='/auth', accept-charset='UTF-8')
+                      input#email.form-control(type='text', placeholder='Email', name='login_email')
+                      input#password.form-control(type='password', placeholder='Password', name='login_password')
+                      button.btn.btn-default.btn-login(type='submit', name='submit', formaction='/auth/login') Login
+              .box
+                .content.registerBox(style='display:none;')
+                  .form
+                    form(method='post', html='{:multipart=>true}', data-remote='true', action='/auth/signup', accept-charset='UTF-8')
+                      input#email.form-control(type='text', placeholder='Email', name='signup_email')
+                      input#password.form-control(type='password', placeholder='Password', name='signup_password')
+                      input#password_confirmation.form-control(type='password', placeholder='Confirm Password', name='signup_confirm_password')
+                      button.btn.btn-default.btn-register(type='submit', name='submit', formaction='/auth/signup') Signup
+            .modal-footer
+              .forgot.login-footer
+                span
+                  | Looking to
+                  a(href='javascript: showRegisterForm();') &nbspcreate an account
+                  | ?
+              .forgot.register-footer(style='display:none')
+                span Already have an account?
+                  a(href='javascript: showLoginForm();') &nbspLogin
+      .jumbotron.text-center
+        h1
+          span.fa.fa-lock
+          |  Node Authentication
+        a.btn.big-login(data-toggle='modal', href='javascript:void(0)', onclick='openLoginModal();') Log in

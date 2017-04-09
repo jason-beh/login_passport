@@ -3,8 +3,12 @@
 <html>
 <head>
   <title>Node Authentication</title>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> <!-- load fontawesome -->
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="/build.js"></script>
   <style>
     body    { padding-top:80px; word-wrap:break-word; }
   </style>
@@ -12,38 +16,87 @@
 <body>
 <div class="container">
 
+  <div class="modal fade login" id="loginModal">
+    <div class="modal-dialog login animated">
+        <div class="modal-content">
+           <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                  <h4 class="modal-title">Login with</h4>
+              </div>
+              <div class="modal-body">
+                  <div class="box">
+                       <div class="content">
+                          <div class="form loginBox">
+                              <form method="post" action="/auth" accept-charset="UTF-8">
+                                <input id="email" class="form-control" type="text" placeholder="Email" name="login_email">
+                                <input id="password" class="form-control" type="password" placeholder="Password" name="login_password">
+                                <button type="submit" class="btn btn-default btn-login" name="submit" formaction="/auth/connect/local/login" >Login</button>
+                              </form>
+                          </div>
+                       </div>
+                  </div>
+                  <div class="box">
+                      <div class="content registerBox" style="display:none;">
+                       <div class="form">
+                          <form method="post" html="{:multipart=>true}" data-remote="true" action="/auth/signup" accept-charset="UTF-8">
+                          <input id="email" class="form-control" type="text" placeholder="Email" name="signup_email">
+                          <input id="password" class="form-control" type="password" placeholder="Password" name="signup_password">
+                          <input id="password_confirmation" class="form-control" type="password" placeholder="Confirm Password" name="signup_confirm_password">
+                          <button type="submit" class="btn btn-default btn-register" name="submit" formaction="/auth/connect/local/signup">Signup</button>
+                          </form>
+                        </div>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <div class="forgot login-footer">
+                      <span>Looking to
+                           <a href="javascript: showRegisterForm();">create an account</a>
+                      ?</span>
+                  </div>
+                  <div class="forgot register-footer" style="display:none">
+                       <span>Already have an account?</span>
+                       <a href="javascript: showLoginForm();">Login</a>
+                  </div>
+              </div>
+        </div>
+    </div>
+  </div>
+
   <div class="page-header text-center">
     <h1><span class="fa fa-anchor"></span> Profile Page</h1>
-    <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+    <a href="/auth/logout" class="btn btn-default btn-sm">Logout</a>
+    <% if (success) { %>
+      <div class="alert alert-success">Success!</div>
+    <% } %>
   </div>
 
   <div class="row">
 
+
+  <% if (user.local.username) { %>
     <!-- LOCAL INFORMATION -->
     <div class="col-sm-6">
       <div class="well">
         <h3><span class="fa fa-user"></span> Local</h3>
 
-          <% if (user.local.username) { %>
             <p>
               <strong>id</strong>: <%= user._id %><br>
               <strong>email</strong>: <%= user.local.username %><br>
               <strong>password</strong>: <%= user.local.password %>
             </p>
 
-            <a href="/unlink/local" class="btn btn-default">Unlink</a>
-          <% } else { %>
-            <a href="/connect/local" class="btn btn-default">Connect Local</a>
-          <% } %>
       </div>
     </div>
+          <% } %>
 
+    <% if (user.facebook.token) { %>
      <!-- FACEBOOK INFORMATION -->
         <div class="col-sm-6">
             <div class="well">
                 <h3 class="text-primary"><span class="fa fa-facebook"></span> Facebook</h3>
 
-                <% if (user.facebook.token) { %>
+
                   <p>
                       <strong>id</strong>: <%= user.facebook.id %><br>
                       <strong>token</strong>: <%= user.facebook.token %><br>
@@ -51,32 +104,46 @@
                       <strong>name</strong>: <%= user.facebook.name %>
                   </p>
 
-                  <a href="/unlink/facebook" class="btn btn-primary">Unlink Facebook</a>
-                <% } else { %>
-                  <a href="/connect/facebook" class="btn btn-primary">Connect Facebook</a>
-                <% } %>
             </div>
         </div>
+      <% } %>
 
+      <% if (user.google.token) { %>
      <!-- Google INFORMATION -->
         <div class="col-sm-6">
             <div class="well">
                 <h3 class="text-danger"><span class="fa fa-google-plus"></span> Google</h3>
 
-                <% if (user.google.token) { %>
+
                 <p>
                     <strong>id</strong>: <%= user.google.id %><br>
                     <strong>token</strong>: <%= user.google.token %><br>
                     <strong>email</strong>: <%= user.google.email %><br>
                     <strong>name</strong>: <%= user.google.name %>
                 </p>
-                  <a href="/unlink/google" class="btn btn-danger">Unlink Google</a>
-                <% } else { %>
-                  <a href="/connect/google" class="btn btn-danger">Connect Google</a>
-                <% } %>
+
             </div>
         </div>
+      <% } %>
 
+
+    <% if (user.linkedin.token) { %>
+     <!-- Google INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3 class="text-success"><span class="fa fa-linkedin"></span> Linkedin</h3>
+
+
+                <p>
+                    <strong>id</strong>: <%= user.linkedin.id %><br>
+                    <strong>token</strong>: <%= user.linkedin.token %><br>
+                    <strong>email</strong>: <%= user.linkedin.email %><br>
+                    <strong>name</strong>: <%= user.linkedin.name %>
+                </p>
+
+            </div>
+        </div>
+        <% } %>
   </div>
 
 </div>

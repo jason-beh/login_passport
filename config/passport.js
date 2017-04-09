@@ -1,7 +1,8 @@
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-
+var BearerStrategy = require('passport-http-bearer').Strategy;
+var LinkedInStrategy = require('passport-linkedin').Strategy;
 
 var User = require('../models/user');
 var configAuth = require('./auth');
@@ -21,38 +22,37 @@ module.exports = function(passport) {
 
 
   passport.use('local-signup', new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password',
+    usernameField: 'signup_email',
+    passwordField: 'signup_password',
     passReqToCallback: true
   },
-  function(req, email, password, done){
+  function(req, signup_email, signup_password, done){
     process.nextTick(function(){
-      User.findOne({'local.username': email}, function(err, user){
-        if(err)
+      var confirm_password = req.body.signup_confirm_password;
+      req.check('signup_email', 'Invalid Email').isEmail();
+      req.check('signup_password', 'Passwords do not match').equals(confirm_password);
+
+      var errors = req.validationErrors();
+      if(errors) {
+        var messages = errors[0].msg;
+        return done(null, false, req.flash('error', messages));
+      }
+      User.findOne({'local.username': signup_email}, function(err, user){
+        if(err){
           return done(err);
-        if(user){
-          return done(null, false, req.flash('signupMessage', 'That email already taken'));
         }
-        if(!req.user) {
+        if(user){
+          return done(null, false, req.flash('error', 'That email already taken'));
+        } else {
           var newUser = new User();
-          newUser.local.username = email;
-          newUser.local.password = newUser.generateHash(password);
+          newUser.local.username = signup_email;
+          newUser.local.password = newUser.generateHash(signup_password);
 
           newUser.save(function(err){
-            if(err)
-              throw err;
+            if(err){
+              return done(err);
+            }
             return done(null, newUser);
-          })
-        } else {
-          var user = req.user;
-          user.local.username = email;
-          user.local.password = user.generateHash(password)
-
-
-          user.save(function(err){
-            if(err)
-              throw err;
-            return done(null, user);
           })
         }
       })
@@ -61,20 +61,24 @@ module.exports = function(passport) {
   }));
 
   passport.use('local-login', new LocalStrategy({
-      usernameField: 'email',
-      passwordField: 'password',
+      usernameField: 'login_email',
+      passwordField: 'login_password',
       passReqToCallback: true
     },
-    function(req, email, password, done){
+    function(req, login_email, login_password, done){
       process.nextTick(function(){
-        User.findOne({ 'local.username': email}, function(err, user){
+        req.check('login_email', 'Invalid Email / Password').isEmail();
+
+        var errors = req.validationErrors();
+        if(errors) {
+          var messages = errors[0].msg;
+          return done(null, false, req.flash('error', messages));
+        }
+        User.findOne({ 'local.username': login_email}, function(err, user){
           if(err)
             return done(err);
-          if(!user)
-            return done(null, false, req.flash('loginMessage', 'No User found'));
-          if(!user.validPassword(password)){
-            return done(null, false, req.flash('loginMessage', 'invalid password'));
-          }
+          if(!user || !user.validPassword(login_password))
+            return done(null, false, req.flash('error', 'Invalid Email / Password'));
           return done(null, user);
 
         });
@@ -200,6 +204,75 @@ module.exports = function(passport) {
       console.log(profile);
       }
   ));
+
+  passport.use(new LinkedInStrategy({
+      consumerKey: configAuth.linkedinAuth.consumerKey,
+      consumerSecret: configAuth.linkedinAuth.consumerSecret,
+      callbackURL: configAuth.linkedinAuth.callbackURL,
+      profileFields: configAuth.linkedinAuth.profileFields,
+      passReqToCallback: true
+    },
+    function(req, accessToken, refreshToken, profile, done) {
+        process.nextTick(function(){
+          // user is not logged in yet
+          if(!req.user) {
+            User.findOne({'linkedin.id': profile.id}, function(err, user){
+              if(err)
+                return done(err);
+              if(user){
+                if(!user.linkedin.token) {
+                  user.linkedin.token = accessToken;
+                  user.linkedin.name = profile.displayName;
+                  user.linkedin.email = profile.emails[0].value;
+                  user.save(function(err){
+                    if(err)
+                      throw err;
+                  })
+                }
+                return done(null, user);
+              }
+              else {
+                var newUser = new User();
+                newUser.linkedin.id = profile.id;
+                newUser.linkedin.token = accessToken;
+                newUser.linkedin.name = profile.displayName;
+                newUser.linkedin.email = profile.emails[0].value;
+                newUser.save(function(err){
+                  if(err)
+                    throw err;
+                  return done(null, newUser);
+                })
+              }
+            });
+          }
+
+          // user is logged in, and needs to be merged
+          else {
+            var user = req.user;
+            user.linkedin.id = profile.id;
+            user.linkedin.token = accessToken;
+            user.linkedin.name = profile.displayName;
+            user.linkedin.email = profile.emails[0].value;
+
+            user.save(function(err) {
+              if(err)
+                  throw err;
+              return done(null, user);
+            })
+          }
+        });
+      console.log(profile);
+      }
+  ));
+
+  passport.use(new BearerStrategy({},
+    function(token, done){
+      User.findOne({ _id: token }, function(err, user) {
+        if(!user)
+          return done(null, false);
+        return done(null, user);
+      })
+    }))
 
 
 };
